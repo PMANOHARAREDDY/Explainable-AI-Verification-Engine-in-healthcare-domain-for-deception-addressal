@@ -16,6 +16,8 @@ class VerifyAPIView(APIView):
             result = engine.verify(query, response_text)
             return Response(result, status=status.HTTP_200_OK)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class GenerateAndVerifyAPIView(APIView):
@@ -41,4 +43,6 @@ class GenerateAndVerifyAPIView(APIView):
             result = engine.verify(query, mock_generated_response)
             return Response(result, status=status.HTTP_200_OK)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -10,3 +10,5 @@ numpy
 spacy
 scikit-learn
 openpyxl
+fastcoref
+rank_bm25

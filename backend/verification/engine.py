@@ -4,37 +4,42 @@ import pickle
 import faiss
 import spacy
 import torch
+import numpy as np
 from sentence_transformers import SentenceTransformer, CrossEncoder
+
+from .claim_extraction import ClaimExtractor
+from .query_expansion import QueryExpander
 
 class VerificationEngine:
     def __init__(self):
-        print("Initializing Verification Engine...")
+        print("Initializing Verification Engine (Upgraded)...")
         self.data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+        
+        # Initialize custom modules
+        self.extractor = ClaimExtractor()
+        self.expander = QueryExpander()
         
         # Load NLP models
         print("Loading biomedical NLP models...")
-        try:
-            self.nlp = spacy.load('en_core_sci_md')
-        except OSError:
-            try:
-                from spacy.cli import download
-                download('en_core_sci_md')
-                self.nlp = spacy.load('en_core_sci_md')
-            except BaseException as e:
-                print(f"Failed to load scispacy en_core_sci_md: {e}. Falling back to en_core_web_sm.")
-                self.nlp = spacy.load('en_core_web_sm')
-
-        self.retriever = SentenceTransformer('ncbi/MedCPT-Article-Encoder')
-        self.nli_model = CrossEncoder('cross-encoder/nli-deberta-v3-base')
+        self.nlp = self.extractor.nlp # Reuse the loaded spacy model for gating
         
-        # Caching layer to speed up redundant claim processing
+        self.retriever = SentenceTransformer('ncbi/MedCPT-Article-Encoder')
+        
+        # Mod 3: Cross-Encoder Reranker
+        print("Loading MedCPT Cross-Encoder...")
+        self.reranker = CrossEncoder('ncbi/MedCPT-Cross-Encoder')
+        
+        # Mod 4: Medical-Grade NLI
+        print("Loading MedNLI Cross-Encoder...")
+        self.nli_model = CrossEncoder('pritamdeka/PubMedBERT-MNLI-MedNLI')
+        
         self.retrieval_cache = {}
         self.nli_cache = {}
         
-        # Map labels dynamically in case model config varies
+        # BioBERT MedNLI mappings: entailment=0, neutral=1, contradiction=2
         self.label_mapping = self.nli_model.config.id2label
-        self.contradiction_idx = next((k for k, v in self.label_mapping.items() if 'contradiction' in v.lower()), 0)
-        self.entailment_idx = next((k for k, v in self.label_mapping.items() if 'entailment' in v.lower()), 1)
+        self.contradiction_idx = next((k for k, v in self.label_mapping.items() if 'contradiction' in v.lower()), 2)
+        self.entailment_idx = next((k for k, v in self.label_mapping.items() if 'entailment' in v.lower()), 0)
         
         # Load Indexes
         self.index = faiss.read_index(os.path.join(self.data_dir, 'faiss_index.bin'))
@@ -45,26 +50,30 @@ class VerificationEngine:
             self.metadata = json.load(f)
 
     def extract_claims(self, text):
-        doc = self.nlp(text)
-        return [sent.text.strip() for sent in doc.sents if len(sent.text.strip()) > 5]
+        # Mod 1: Fastcoref and Dependency parsing
+        return self.extractor.process(text)
 
     def retrieve_hybrid(self, claim, top_k=3):
         if claim in self.retrieval_cache:
             return self.retrieval_cache[claim]
             
-        # 1. FAISS Dense Retrieval
-        embedding = self.retriever.encode([claim], normalize_embeddings=True)
-        distances, indices = self.index.search(embedding, top_k * 2) # Get more for RRF
+        # Mod 2: Query Expansion
+        expanded_sparse_query = self.expander.expand_with_umls(claim)
+        hyde_dense_query = self.expander.generate_hyde(claim)
+            
+        # 1. FAISS Dense Retrieval with HyDE
+        embedding = self.retriever.encode([hyde_dense_query], normalize_embeddings=True)
+        distances, indices = self.index.search(embedding, 10) # Get top 10 for RRF
         
         faiss_ranks = {}
         for rank, (dist, idx) in enumerate(zip(distances[0], indices[0])):
             if idx != -1:
                 faiss_ranks[str(idx)] = {"rank": rank, "score": float(dist)}
                 
-        # 2. BM25 Sparse Retrieval
-        tokenized_query = claim.lower().split(" ")
+        # 2. BM25 Sparse Retrieval with UMLS Expansion
+        tokenized_query = expanded_sparse_query.lower().split(" ")
         bm25_scores = self.bm25.get_scores(tokenized_query)
-        bm25_top_indices = bm25_scores.argsort()[::-1][:top_k * 2]
+        bm25_top_indices = bm25_scores.argsort()[::-1][:10]
         
         bm25_ranks = {}
         for rank, idx in enumerate(bm25_top_indices):
@@ -83,23 +92,64 @@ class VerificationEngine:
                 score += 1.0 / (k_rrf + bm25_ranks[doc_id]["rank"])
             rrf_scores[doc_id] = score
             
-        # Sort by RRF score
-        sorted_ids = sorted(rrf_scores.keys(), key=lambda x: rrf_scores[x], reverse=True)[:top_k]
+        # Sort by RRF score to get candidates for reranking
+        candidate_ids = sorted(rrf_scores.keys(), key=lambda x: rrf_scores[x], reverse=True)[:10]
         
-        evidence = []
-        for doc_id in sorted_ids:
+        candidates = []
+        for doc_id in candidate_ids:
             if doc_id in self.metadata:
                 meta = self.metadata[doc_id]
-                faiss_score = faiss_ranks.get(doc_id, {}).get("score", 0.0)
-                evidence.append({
+                candidates.append({
+                    "id": doc_id,
                     "text": meta['text'],
-                    "source": meta['source'],
-                    "faiss_similarity": faiss_score,
-                    "rrf_score": rrf_scores[doc_id]
+                    "source": meta['source']
                 })
+                
+        if not candidates:
+            return []
+
+        # Mod 3: Cross-Encoder Reranking
+        cross_inp = [[claim, cand['text']] for cand in candidates]
+        cross_scores = self.reranker.predict(cross_inp)
+        
+        for idx, cand in enumerate(candidates):
+            cand['rerank_score'] = float(cross_scores[idx])
+            
+        # Sort by rerank score and take top_k
+        candidates = sorted(candidates, key=lambda x: x['rerank_score'], reverse=True)[:top_k]
+        
+        evidence = []
+        for cand in candidates:
+            evidence.append({
+                "text": cand['text'],
+                "source": cand['source'],
+                "rerank_score": cand['rerank_score']
+            })
                 
         self.retrieval_cache[claim] = evidence
         return evidence
+        
+    def dynamic_ner_gating(self, claim, evidence_list):
+        """
+        Mod 4: Check if the claim shares any core medical entities with the retrieved evidence.
+        """
+        claim_doc = self.nlp(claim)
+        claim_ents = set([ent.text.lower() for ent in claim_doc.ents])
+        
+        if not claim_ents:
+            # If no entities in claim, fallback to safe verification
+            return True 
+            
+        for ev in evidence_list:
+            ev_doc = self.nlp(ev['text'])
+            ev_ents = set([ent.text.lower() for ent in ev_doc.ents])
+            
+            # If intersection is found, we should proceed with NLI
+            if claim_ents.intersection(ev_ents):
+                return True
+                
+        # Zero core medical entities shared, bypass NLI
+        return False
 
     def verify(self, query, response_text):
         claims = self.extract_claims(response_text)
@@ -110,14 +160,14 @@ class VerificationEngine:
         for claim in claims:
             evidence_list = self.retrieve_hybrid(claim, top_k=3)
             
-            # Similarity Gating
-            top_faiss_score = max([ev['faiss_similarity'] for ev in evidence_list]) if evidence_list else 0.0
+            # Mod 4: Dynamic NER Gating
+            should_verify = self.dynamic_ner_gating(claim, evidence_list)
             
-            if top_faiss_score < 0.65:
+            if not should_verify or not evidence_list:
                 results.append({
                     "text": claim,
                     "status": "UNVERIFIED",
-                    "reason": "Insufficient Knowledge Base Evidence",
+                    "reason": "No shared medical entities with knowledge base",
                     "confidence": 0.0,
                     "evidence": evidence_list
                 })
