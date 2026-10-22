@@ -1,0 +1,7 @@
+{
+  "name": "explainable-healthcare-verification-engine",
+  "private": true,
+  "scripts": {
+    "test": "npm --prefix frontend test"
+  }
+}
