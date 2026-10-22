@@ -177,6 +177,12 @@ function App() {
     setSelectedClaim(SAMPLE_DEMO_REPORT.claims[0]);
   };
 
+  // New logout handler
+  const handleLogout = () => {
+    // For now, just show a notification
+    showNotification('Logged out');
+  };
+
   // High-clarity semantic status badge rendering
   const renderStatusBadge = (status: Claim['status']) => {
     switch (status) {
@@ -290,13 +296,16 @@ function App() {
               <Database className="w-3.5 h-3.5 text-indigo-400" />
               <span>Load Sample Data</span>
             </button>
-            <div className="hidden md:flex items-center gap-2 text-xs font-medium text-cyan-400 bg-cyan-900/30 border border-cyan-700/70 px-3 py-1 rounded-full shadow-lg shadow-neon-cyan">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-              </span>
-              <span>DeBERTa-v3 + MedCPT Grounded</span>
-            </div>
+
+            {/* New Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="text-xs font-semibold text-magenta-300 hover:text-magenta-400 bg-black/40 hover:bg-magenta-900/40 border border-magenta-700 hover:border-magenta-500 px-3 py-1.5 rounded-full transition-all shadow-lg flex items-center gap-1.5 shadow-neon-magenta"
+              title="Logout"
+            >
+              <X className="w-3.5 h-3.5 text-magenta-400" />
+              <span>Logout</span>
+            </button>
           </div>
         </div>
       </header>
@@ -692,7 +701,7 @@ function App() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="w-2 h-2 rounded-full bg-cyan-500 inline-block shadow-lg shadow-cyan-700/80" />
-            <span>Explainable Healthcare Verification  Natural Language Inference & Hybrid Retrieval</span>
+            <span>Explainable Healthcare Verification \u001f Natural Language Inference & Hybrid Retrieval</span>
           </div>
           <span className="text-[11px] font-semibold text-indigo-300 bg-indigo-900/70 border border-indigo-700 px-3 py-1 rounded-full shadow-lg">
             Biomedical AI Grounding Engine
