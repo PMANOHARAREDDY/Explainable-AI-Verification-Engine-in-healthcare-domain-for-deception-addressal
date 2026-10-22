@@ -233,7 +233,7 @@ function App() {
   const getScoreTheme = (score: number) => {
     if (score >= 75) {
       return {
-        cardBg: 'bg-gradient-to-br from-cyan-900/80 via-indigo-900/60 to-purple-900/50 border border-cyan-700 shadow-neon-cyan',
+        cardBg: 'bg-gradient-to-br from-cyan-900/80 via-indigo-900/60 to-purple-900/50 border border-cyan-700 shadow-neon-cyan glass-panel',
         scoreColor: 'text-cyan-400',
         barGradient: 'bg-gradient-to-r from-cyan-500 to-indigo-500',
         labelBadge: 'bg-cyan-800 text-cyan-300 border-cyan-700',
@@ -242,7 +242,7 @@ function App() {
     }
     if (score >= 50) {
       return {
-        cardBg: 'bg-gradient-to-br from-magenta-900/80 via-purple-900/60 to-indigo-900/50 border border-magenta-700 shadow-neon-magenta',
+        cardBg: 'bg-gradient-to-br from-magenta-900/80 via-purple-900/60 to-indigo-900/50 border border-magenta-700 shadow-neon-magenta glass-panel',
         scoreColor: 'text-magenta-400',
         barGradient: 'bg-gradient-to-r from-magenta-500 to-purple-500',
         labelBadge: 'bg-magenta-800 text-magenta-300 border-magenta-700',
@@ -250,7 +250,7 @@ function App() {
       };
     }
     return {
-      cardBg: 'bg-gradient-to-br from-indigo-900/80 via-purple-900/60 to-blue-900/50 border border-indigo-700 shadow-neon-indigo',
+      cardBg: 'bg-gradient-to-br from-indigo-900/80 via-purple-900/60 to-blue-900/50 border border-indigo-700 shadow-neon-indigo glass-panel',
       scoreColor: 'text-indigo-400',
       barGradient: 'bg-gradient-to-r from-indigo-500 to-blue-500',
       labelBadge: 'bg-indigo-800 text-indigo-300 border-indigo-700',
@@ -261,7 +261,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-midnight-900 via-indigo-900 to-indigo-800 text-slate-200 flex flex-col font-sans selection:bg-indigo-700 selection:text-indigo-100">
       {/* Dynamic colorful navbar */}
-      <header className="sticky top-0 z-30 bg-black/70 backdrop-blur-md border-b border-indigo-800/60 px-6 py-3.5 shadow-lg shadow-neon-indigo">
+      <header className="sticky top-0 z-30 bg-black/70 backdrop-blur-md border-b border-indigo-800/60 px-6 py-3.5 shadow-lg shadow-neon-indigo glass-panel">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-700 via-indigo-700 to-purple-700 text-white flex items-center justify-center shadow-lg shadow-neon-cyan">
@@ -323,7 +323,7 @@ function App() {
       <main className="max-w-7xl mx-auto w-full p-6 flex-grow flex flex-col lg:flex-row gap-6">
         {/* Left Panel: Clinical assertion studio */}
         <div className="w-full lg:w-1/2 flex flex-col gap-4">
-          <div className="bg-black/30 backdrop-blur-lg border border-purple-700 rounded-3xl shadow-neon-purple transition-shadow p-6 flex flex-col flex-grow relative overflow-hidden">
+          <div className="glass-panel p-6 flex flex-col flex-grow relative overflow-hidden">
             {/* Top accent bar */}
             <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 shadow-neon-purple" />
 
@@ -423,7 +423,7 @@ function App() {
 
         {/* Right Panel: Verification view & explanation */}
         <div className="w-full lg:w-1/2 flex flex-col gap-6">
-          <div className="bg-black/30 backdrop-blur-lg border border-blue-700 rounded-3xl shadow-neon-blue transition-shadow p-6 flex flex-col flex-grow relative overflow-hidden">
+          <div className="glass-panel bg-black/30 backdrop-blur-lg border border-blue-700 rounded-3xl shadow-neon-blue transition-shadow p-6 flex flex-col flex-grow relative overflow-hidden">
             {/* Top accent bar */}
             <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl bg-gradient-to-r from-blue-600 via-cyan-600 to-purple-700 shadow-neon-blue" />
 
@@ -555,7 +555,7 @@ function App() {
                 {/* Explanation Drawer / Evidence Details */}
                 {selectedClaim ? (
                   <div
-                    className={`bg-black/50 border rounded-3xl p-5 shadow-lg space-y-6 mt-auto transition-all ${
+                    className={`glass-panel border rounded-3xl p-5 shadow-lg space-y-6 mt-auto transition-all ${
                       selectedClaim.status === 'CONTRADICTORY'
                         ? 'border-magenta-700 shadow-neon-magenta'
                         : selectedClaim.status === 'VERIFIED'
@@ -688,11 +688,11 @@ function App() {
       </main>
 
       {/* Colorful healthcare footer */}
-      <footer className="mt-auto border-t border-indigo-800 bg-black/70 backdrop-blur-sm px-6 py-4 text-center text-xs text-indigo-400 shadow-neon-indigo">
+      <footer className="mt-auto border-t border-indigo-800 bg-black/70 backdrop-blur-sm px-6 py-4 text-center text-xs text-indigo-400 shadow-neon-indigo glass-panel">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="w-2 h-2 rounded-full bg-cyan-500 inline-block shadow-lg shadow-cyan-700/80" />
-            <span>Explainable Healthcare Verification • Natural Language Inference & Hybrid Retrieval</span>
+            <span>Explainable Healthcare Verification  Natural Language Inference & Hybrid Retrieval</span>
           </div>
           <span className="text-[11px] font-semibold text-indigo-300 bg-indigo-900/70 border border-indigo-700 px-3 py-1 rounded-full shadow-lg">
             Biomedical AI Grounding Engine
@@ -704,29 +704,3 @@ function App() {
 }
 
 export default App;
-
-/*
-  Additional Tailwind CSS custom utilities for neon/glow effects to be added in the global stylesheet (index.css or tailwind config):
-
-  .shadow-neon-cyan {
-    box-shadow: 0 0 8px 2px #22d3ee99, 0 0 20px 6px #22d3ee66;
-  }
-  .shadow-neon-magenta {
-    box-shadow: 0 0 8px 2px #db277799, 0 0 20px 6px #db277766;
-  }
-  .shadow-neon-indigo {
-    box-shadow: 0 0 8px 2px #6366f199, 0 0 20px 6px #6366f166;
-  }
-  .shadow-neon-purple {
-    box-shadow: 0 0 8px 2px #7c3aed99, 0 0 20px 6px #7c3aed66;
-  }
-  .neon-glow-blue {
-    box-shadow: 0 0 12px 3px #3b82f699;
-  }
-  .neon-glow-cyan {
-    box-shadow: 0 0 12px 3px #22d3ee99;
-  }
-  .neon-glow-purple {
-    box-shadow: 0 0 12px 3px #7c3aed99;
-  }
-*/
