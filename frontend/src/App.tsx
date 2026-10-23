@@ -177,11 +177,7 @@ function App() {
     setSelectedClaim(SAMPLE_DEMO_REPORT.claims[0]);
   };
 
-  // New logout handler
-  const handleLogout = () => {
-    // For now, just show a notification
-    showNotification('Logged out');
-  };
+  // Removed unused handleLogout function
 
   // High-clarity semantic status badge rendering
   const renderStatusBadge = (status: Claim['status']) => {
@@ -295,16 +291,6 @@ function App() {
             >
               <Database className="w-3.5 h-3.5 text-indigo-400" />
               <span>Load Sample Data</span>
-            </button>
-
-            {/* New Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="text-xs font-semibold text-magenta-300 hover:text-magenta-400 bg-black/40 hover:bg-magenta-900/40 border border-magenta-700 hover:border-magenta-500 px-3 py-1.5 rounded-full transition-all shadow-lg flex items-center gap-1.5 shadow-neon-magenta"
-              title="Logout"
-            >
-              <X className="w-3.5 h-3.5 text-magenta-400" />
-              <span>Logout</span>
             </button>
           </div>
         </div>
