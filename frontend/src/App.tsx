@@ -177,7 +177,10 @@ function App() {
     setSelectedClaim(SAMPLE_DEMO_REPORT.claims[0]);
   };
 
-  // Removed unused handleLogout function
+  // New handler for login button
+  const handleLoginClick = () => {
+    showNotification('Login button clicked');
+  };
 
   // High-clarity semantic status badge rendering
   const renderStatusBadge = (status: Claim['status']) => {
@@ -291,6 +294,14 @@ function App() {
             >
               <Database className="w-3.5 h-3.5 text-indigo-400" />
               <span>Load Sample Data</span>
+            </button>
+
+            {/* New Login Button */}
+            <button
+              onClick={handleLoginClick}
+              className="text-xs font-semibold text-indigo-300 hover:text-indigo-400 bg-black/40 hover:bg-indigo-900/40 border border-indigo-700 hover:border-indigo-500 px-3 py-1.5 rounded-full transition-all shadow-lg flex items-center gap-1.5 shadow-neon-indigo"
+            >
+              <span>Login</span>
             </button>
           </div>
         </div>
