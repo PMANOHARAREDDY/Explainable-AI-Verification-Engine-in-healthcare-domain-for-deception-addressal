@@ -103,6 +103,86 @@ const SAMPLE_DEMO_REPORT: VerificationReport = {
   ]
 };
 
+function LoginScreen({ onLoginSuccess, onCancel }: { onLoginSuccess: () => void; onCancel: () => void }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginType, setLoginType] = useState<'SSO' | 'ACL'>('SSO');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // For now, simulate login success
+    alert(`Logging in with ${loginType} as ${username}`);
+    onLoginSuccess();
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-midnight-900 via-indigo-900 to-indigo-800 text-slate-200 flex flex-col font-sans selection:bg-indigo-700 selection:text-indigo-100 p-6">
+      <div className="max-w-md w-full mx-auto bg-black/70 backdrop-blur-md border border-indigo-800 rounded-3xl p-8 shadow-lg shadow-neon-indigo">
+        <h2 className="text-2xl font-bold mb-6 text-center">Simple Login</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <label className="flex flex-col text-sm font-semibold">
+            Username
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="mt-1 p-2 rounded-md bg-black/40 border border-indigo-700 text-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
+            />
+          </label>
+          <label className="flex flex-col text-sm font-semibold">
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 p-2 rounded-md bg-black/40 border border-indigo-700 text-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
+            />
+          </label>
+          <div className="flex gap-4 items-center">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="loginType"
+                value="SSO"
+                checked={loginType === 'SSO'}
+                onChange={() => setLoginType('SSO')}
+              />
+              SSO
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="loginType"
+                value="ACL"
+                checked={loginType === 'ACL'}
+                onChange={() => setLoginType('ACL')}
+              />
+              ACL
+            </label>
+          </div>
+          <div className="flex justify-between mt-6">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 rounded-full border border-indigo-700 text-indigo-300 hover:text-indigo-400 hover:border-indigo-500 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-full bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 hover:from-cyan-700 hover:via-cyan-800 hover:to-cyan-900 text-white font-semibold transition"
+            >
+              Login
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [query, setQuery] = useState(PRESET_QUERIES[0].query);
   const [responseText, setResponseText] = useState(PRESET_QUERIES[0].response);
@@ -110,6 +190,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+
+  // New state to toggle login screen
+  const [showLogin, setShowLogin] = useState(false);
 
   const showNotification = (msg: string) => {
     setNotification(msg);
@@ -258,6 +341,10 @@ function App() {
     };
   };
 
+  if (showLogin) {
+    return <LoginScreen onLoginSuccess={() => setShowLogin(false)} onCancel={() => setShowLogin(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-midnight-900 via-indigo-900 to-indigo-800 text-slate-200 flex flex-col font-sans selection:bg-indigo-700 selection:text-indigo-100">
       {/* Dynamic colorful navbar */}
@@ -291,9 +378,9 @@ function App() {
               <span>Load Sample Data</span>
             </button>
 
-            {/* Added Simple Login button */}
+            {/* Updated Simple Login button to toggle login screen */}
             <button
-              onClick={() => showNotification('Login button clicked')}
+              onClick={() => setShowLogin(true)}
               className="text-xs font-semibold text-indigo-300 hover:text-indigo-400 bg-black/40 hover:bg-indigo-900/40 border border-indigo-700 hover:border-indigo-500 px-3 py-1.5 rounded-full transition-all shadow-lg flex items-center gap-1.5 shadow-neon-indigo"
             >
               <span>Simple Login</span>
