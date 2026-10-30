@@ -291,7 +291,13 @@ function App() {
               <span>Load Sample Data</span>
             </button>
 
-            {/* Login button removed as per task requirement */}
+            {/* Added Simple Login button */}
+            <button
+              onClick={() => showNotification('Login button clicked')}
+              className="text-xs font-semibold text-indigo-300 hover:text-indigo-400 bg-black/40 hover:bg-indigo-900/40 border border-indigo-700 hover:border-indigo-500 px-3 py-1.5 rounded-full transition-all shadow-lg flex items-center gap-1.5 shadow-neon-indigo"
+            >
+              <span>Simple Login</span>
+            </button>
           </div>
         </div>
       </header>
