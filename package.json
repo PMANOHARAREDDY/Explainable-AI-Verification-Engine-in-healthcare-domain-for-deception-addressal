@@ -3,5 +3,8 @@
   "private": true,
   "scripts": {
     "test": "npm --prefix frontend test"
+  },
+  "dependencies": {
+    "react-router-dom": "^7.18.5"
   }
 }

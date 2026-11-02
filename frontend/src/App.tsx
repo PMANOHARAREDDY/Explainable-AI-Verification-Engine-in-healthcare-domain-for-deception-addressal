@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   ShieldCheck,
@@ -16,6 +16,8 @@ import {
   Layers,
   Cpu
 } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import LandingPage from './LandingPage';
 
 interface Evidence {
   text: string;
@@ -103,96 +105,59 @@ const SAMPLE_DEMO_REPORT: VerificationReport = {
   ]
 };
 
-function LoginScreen({ onLoginSuccess, onCancel }: { onLoginSuccess: () => void; onCancel: () => void }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginType, setLoginType] = useState<'SSO' | 'ACL'>('SSO');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // For now, simulate login success
-    alert(`Logging in with ${loginType} as ${username}`);
-    onLoginSuccess();
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-midnight-900 via-indigo-900 to-indigo-800 text-slate-200 flex flex-col font-sans selection:bg-indigo-700 selection:text-indigo-100 p-6">
-      <div className="max-w-md w-full mx-auto bg-black/70 backdrop-blur-md border border-indigo-800 rounded-3xl p-8 shadow-lg shadow-neon-indigo">
-        <h2 className="text-2xl font-bold mb-6 text-center">Simple Login</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <label className="flex flex-col text-sm font-semibold">
-            Username
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 p-2 rounded-md bg-black/40 border border-indigo-700 text-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-          </label>
-          <label className="flex flex-col text-sm font-semibold">
-            Password
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 p-2 rounded-md bg-black/40 border border-indigo-700 text-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-          </label>
-          <div className="flex gap-4 items-center">
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="loginType"
-                value="SSO"
-                checked={loginType === 'SSO'}
-                onChange={() => setLoginType('SSO')}
-              />
-              SSO
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="loginType"
-                value="ACL"
-                checked={loginType === 'ACL'}
-                onChange={() => setLoginType('ACL')}
-              />
-              ACL
-            </label>
-          </div>
-          <div className="flex justify-between mt-6">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 rounded-full border border-indigo-700 text-indigo-300 hover:text-indigo-400 hover:border-indigo-500 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-full bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 hover:from-cyan-700 hover:via-cyan-800 hover:to-cyan-900 text-white font-semibold transition"
-            >
-              Login
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+function renderStatusBadge(status: Claim['status']) {
+  switch (status) {
+    case 'VERIFIED':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+          Verified Grounding
+        </span>
+      );
+    case 'CONTRADICTORY':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-300 shadow-2xs">
+          <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+          Contradictory / Deceptive
+        </span>
+      );
+    case 'UNVERIFIED':
+    default:
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-300 shadow-2xs">
+          <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
+          Unverified
+        </span>
+      );
+  }
 }
 
-function App() {
+function getSentenceStyle(claim: Claim, isSelected: boolean) {
+  const base = 'inline cursor-pointer transition-all duration-150 rounded px-1.5 py-0.5 my-0.5 leading-relaxed font-normal';
+  switch (claim.status) {
+    case 'VERIFIED':
+      return isSelected
+        ? `${base} bg-cyan-900/90 text-cyan-100 font-semibold ring-2 ring-cyan-400 border-b-2 border-cyan-500 shadow-neon-cyan`
+        : `${base} bg-cyan-900/70 text-cyan-300 hover:bg-cyan-900/90 border-b-2 border-cyan-500`;
+    case 'CONTRADICTORY':
+      return isSelected
+        ? `${base} bg-magenta-900/90 text-magenta-100 font-semibold ring-2 ring-magenta-400 border-b-2 border-magenta-500 shadow-neon-magenta`
+        : `${base} bg-magenta-900/70 text-magenta-300 hover:bg-magenta-900/90 border-b-2 border-magenta-500`;
+    case 'UNVERIFIED':
+    default:
+      return isSelected
+        ? `${base} bg-indigo-900/90 text-indigo-100 font-semibold ring-2 ring-indigo-400 border-b-2 border-indigo-500 shadow-neon-indigo`
+        : `${base} bg-indigo-900/70 text-indigo-300 hover:bg-indigo-900/90 border-b-2 border-indigo-500`;
+  }
+}
+
+function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [query, setQuery] = useState(PRESET_QUERIES[0].query);
   const [responseText, setResponseText] = useState(PRESET_QUERIES[0].response);
   const [report, setReport] = useState<VerificationReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
-
-  // New state to toggle login screen
-  const [showLogin, setShowLogin] = useState(false);
 
   const showNotification = (msg: string) => {
     setNotification(msg);
@@ -260,59 +225,10 @@ function App() {
     setSelectedClaim(SAMPLE_DEMO_REPORT.claims[0]);
   };
 
-  // High-clarity semantic status badge rendering
-  const renderStatusBadge = (status: Claim['status']) => {
-    switch (status) {
-      case 'VERIFIED':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            Verified Grounding
-          </span>
-        );
-      case 'CONTRADICTORY':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-300 shadow-2xs">
-            <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-            Contradictory / Deceptive
-          </span>
-        );
-      case 'UNVERIFIED':
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-300 shadow-2xs">
-            <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
-            Unverified
-          </span>
-        );
-    }
-  };
-
-  // Semantic highlighting for inline claim text
-  const getSentenceStyle = (claim: Claim, isSelected: boolean) => {
-    const base = 'inline cursor-pointer transition-all duration-150 rounded px-1.5 py-0.5 my-0.5 leading-relaxed font-normal';
-    switch (claim.status) {
-      case 'VERIFIED':
-        return isSelected
-          ? `${base} bg-cyan-900/90 text-cyan-100 font-semibold ring-2 ring-cyan-400 border-b-2 border-cyan-500 shadow-neon-cyan`
-          : `${base} bg-cyan-900/70 text-cyan-300 hover:bg-cyan-900/90 border-b-2 border-cyan-500`;
-      case 'CONTRADICTORY':
-        return isSelected
-          ? `${base} bg-magenta-900/90 text-magenta-100 font-semibold ring-2 ring-magenta-400 border-b-2 border-magenta-500 shadow-neon-magenta`
-          : `${base} bg-magenta-900/70 text-magenta-300 hover:bg-magenta-900/90 border-b-2 border-magenta-500`;
-      case 'UNVERIFIED':
-      default:
-        return isSelected
-          ? `${base} bg-indigo-900/90 text-indigo-100 font-semibold ring-2 ring-indigo-400 border-b-2 border-indigo-500 shadow-neon-indigo`
-          : `${base} bg-indigo-900/70 text-indigo-300 hover:bg-indigo-900/90 border-b-2 border-indigo-500`;
-    }
-  };
-
   const verifiedCount = report ? report.claims.filter((c) => c.status === 'VERIFIED').length : 0;
   const contradictoryCount = report ? report.claims.filter((c) => c.status === 'CONTRADICTORY').length : 0;
   const unverifiedCount = report ? report.claims.filter((c) => c.status === 'UNVERIFIED').length : 0;
 
-  // Dynamic color configuration for trust score
   const getScoreTheme = (score: number) => {
     if (score >= 75) {
       return {
@@ -340,10 +256,6 @@ function App() {
       labelText: 'Potential Discrepancy / Deception Risk'
     };
   };
-
-  if (showLogin) {
-    return <LoginScreen onLoginSuccess={() => setShowLogin(false)} onCancel={() => setShowLogin(false)} />;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-midnight-900 via-indigo-900 to-indigo-800 text-slate-200 flex flex-col font-sans selection:bg-indigo-700 selection:text-indigo-100">
@@ -378,13 +290,17 @@ function App() {
               <span>Load Sample Data</span>
             </button>
 
-            {/* Updated Simple Login button to toggle login screen */}
-            <button
-              onClick={() => setShowLogin(true)}
-              className="text-xs font-semibold text-indigo-300 hover:text-indigo-400 bg-black/40 hover:bg-indigo-900/40 border border-indigo-700 hover:border-indigo-500 px-3 py-1.5 rounded-full transition-all shadow-lg flex items-center gap-1.5 shadow-neon-indigo"
-            >
-              <span>Simple Login</span>
-            </button>
+            {/* Conditionally render Simple Login or Logout button based on auth state */}
+            {onLogout ? (
+              <button
+                onClick={onLogout}
+                className="text-xs font-semibold text-indigo-300 hover:text-indigo-400 bg-black/40 hover:bg-indigo-900/40 border border-indigo-700 hover:border-indigo-500 px-3 py-1.5 rounded-full transition-all shadow-lg flex items-center gap-1.5 shadow-neon-indigo"
+              >
+                Logout
+              </button>
+            ) : (
+              <></> // No login button here; login handled on landing page
+            )}
           </div>
         </div>
       </header>
@@ -774,20 +690,56 @@ function App() {
           </div>
         </div>
       </main>
-
-      {/* Colorful healthcare footer */}
-      <footer className="mt-auto border-t border-indigo-800 bg-black/70 backdrop-blur-sm px-6 py-4 text-center text-xs text-indigo-400 shadow-neon-indigo glass-panel">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-cyan-500 inline-block shadow-lg shadow-cyan-700/80" />
-            <span>Explainable Healthcare Verification \u001f Natural Language Inference & Hybrid Retrieval</span>
-          </div>
-          <span className="text-[11px] font-semibold text-indigo-300 bg-indigo-900/70 border border-indigo-700 px-3 py-1 rounded-full shadow-lg">
-            Biomedical AI Grounding Engine
-          </span>
-        </div>
-      </footer>
     </div>
+  );
+}
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/auth/session/');
+        setIsAuthenticated(response.data.authenticated);
+      } catch {
+        setIsAuthenticated(false);
+      }
+    };
+    checkSession();
+  }, []);
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await axios.post('http://localhost:8000/api/auth/logout/');
+    } catch {
+      // ignore errors
+    }
+    setIsAuthenticated(false);
+  };
+
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage onLoginSuccess={handleLoginSuccess} />
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            isAuthenticated ? <Dashboard onLogout={handleLogout} /> : <Navigate to="/" replace />
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
