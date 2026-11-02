@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { ShieldCheck } from 'lucide-react';
 
 export default function LandingPage({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   const [isLogin, setIsLogin] = useState(true);
@@ -31,7 +32,7 @@ export default function LandingPage({ onLoginSuccess }: { onLoginSuccess: () => 
           setError(response.data.message || 'Registration failed');
         }
       }
-    } catch (err) {
+    } catch {
       setError('Server error. Please try again later.');
     }
   };
@@ -39,8 +40,23 @@ export default function LandingPage({ onLoginSuccess }: { onLoginSuccess: () => 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-midnight-900 via-indigo-900 to-indigo-800 text-slate-200 p-6">
       <div className="max-w-md w-full bg-black/70 backdrop-blur-md border border-indigo-800 rounded-3xl p-8 shadow-lg shadow-neon-indigo">
-        <h2 className="text-3xl font-bold mb-6 text-center">
-          {isLogin ? 'Login' : 'Register'}
+        <div className="flex flex-col items-center mb-6 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-indigo-500 p-0.5 shadow-lg shadow-neon-cyan mb-3 flex items-center justify-center">
+            <div className="w-full h-full bg-midnight-900 rounded-[14px] flex items-center justify-center">
+              <ShieldCheck className="w-6 h-6 text-cyan-400" />
+            </div>
+          </div>
+          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+            <span>HealthVerify</span>
+            <span className="text-[10px] tracking-wider uppercase bg-cyan-950/80 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full font-semibold">
+              Clinical AI
+            </span>
+          </h1>
+          <p className="text-xs text-indigo-300 mt-1">Explainable Healthcare AI Verification Engine</p>
+        </div>
+
+        <h2 className="text-2xl font-bold mb-5 text-center text-slate-100">
+          {isLogin ? 'Login' : 'Create Account'}
         </h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label className="flex flex-col text-sm font-semibold">
