@@ -696,6 +696,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // Added loading state
 
   useEffect(() => {
     const checkSession = async () => {
@@ -704,6 +705,8 @@ function App() {
         setIsAuthenticated(response.data.authenticated);
       } catch {
         setIsAuthenticated(false);
+      } finally {
+        setLoading(false); // Set loading false after check
       }
     };
     checkSession();
@@ -721,6 +724,18 @@ function App() {
     }
     setIsAuthenticated(false);
   };
+
+  if (loading) {
+    // Show loading spinner or message while checking auth
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-midnight-900 via-indigo-900 to-indigo-800 text-slate-200">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-700 border-t-cyan-400 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg font-semibold">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Router>
