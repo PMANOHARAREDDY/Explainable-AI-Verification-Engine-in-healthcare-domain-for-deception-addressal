@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import axios from 'axios';
 
 axios.defaults.withCredentials = true;
@@ -13,9 +14,76 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import LandingPage from './LandingPage';
 import SettingsPage from './SettingsPage';
 
-function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const [notification, setNotification] = useState<string | null>(null);
+// New stateless presentation components with explicit typing
+interface DashboardContentProps {}
 
+const DashboardContent: React.FC<DashboardContentProps> = () => {
+  return (
+    <div>
+      {/* TODO: Replace with actual dashboard content */}
+      <h2 className="text-xl font-semibold text-indigo-200 mb-4">Dashboard Content</h2>
+      <p className="text-indigo-300">This is the actual dashboard content area.</p>
+    </div>
+  );
+};
+
+interface VerificationViewProps {}
+
+const VerificationView: React.FC<VerificationViewProps> = () => {
+  return (
+    <div>
+      {/* TODO: Replace with actual verification view content */}
+      <h2 className="text-xl font-semibold text-blue-300 mb-4">Verification View</h2>
+      <p className="text-blue-400">This is the actual verification view area.</p>
+    </div>
+  );
+};
+
+// Error boundary wrapper for dashboard content rendering
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  componentName: string;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(_: Error): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Structured logging with contextual metadata
+    console.error(`[Dashboard][${this.props.componentName}] Rendering error:`, {
+      message: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString(),
+      task_id: 'BTS-125410',
+    });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="text-red-500 font-semibold">
+          Error loading {this.props.componentName}. Please try again later.
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export function Dashboard({ onLogout }: { onLogout: () => void }) {
+  const [notification, setNotification] = useState<string | null>(null);
   const navigate = useNavigate();
 
   return (
@@ -98,8 +166,10 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             {/* Top accent bar */}
             <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 shadow-neon-purple" />
 
-            {/* Dashboard content placeholder */}
-            <p className="text-indigo-300">Dashboard content goes here.</p>
+            {/* Replace placeholder with actual dashboard content */}
+            <ErrorBoundary componentName="DashboardContent">
+              <DashboardContent />
+            </ErrorBoundary>
           </div>
         </div>
 
@@ -109,8 +179,10 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             {/* Top accent bar */}
             <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl bg-gradient-to-r from-blue-600 via-cyan-600 to-purple-700 shadow-neon-blue" />
 
-            {/* Right panel content placeholder */}
-            <p className="text-blue-400">Verification view goes here.</p>
+            {/* Replace placeholder with actual verification view */}
+            <ErrorBoundary componentName="VerificationView">
+              <VerificationView />
+            </ErrorBoundary>
           </div>
         </div>
       </main>
