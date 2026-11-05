@@ -9,6 +9,7 @@ An advanced, full-stack AI pipeline designed to detect and mitigate Large Langua
 *   **NLI Text Classification**: Uses Microsoft's `cross-encoder/nli-deberta-v3-base` to semantically classify claims as `VERIFIED`, `CONTRADICTORY`, or `UNVERIFIED`.
 *   **In-Memory Caching**: Caches retrieval and NLI inferences to provide instant 0ms responses for recurring claims.
 *   **Explainable UI**: A React dashboard that visually color-codes sentences and provides an interactive "Explanation Drawer" exposing the exact retrieved evidence and confidence scores.
+*   **User Authentication**: Added a secure user authentication flow with SQLite3 backend integration, including login, registration, session management, and dynamic dashboard UI updates based on user authentication state.
 
 ---
 
@@ -110,8 +111,11 @@ npm run dev
 ## 💡 Usage Instructions
 
 1. Open your browser and navigate to the frontend URL (e.g., `http://localhost:5173`).
-2. **Manual Mode**: Type a medical query and paste an AI response, then click **Verify Response**.
-3. **Auto Mode**: Type a keyword (like `"aspirin"`, `"vaccine"`, or `"cancer"`) in the query box and click **Auto-Generate & Verify**. The backend will mock a generated LLM response and instantly verify it.
-4. **Explanation**: The text will be highlighted in Green, Amber, or Red. Click on any highlighted sentence to open the **Explanation Drawer** at the bottom, which reveals the exact medical evidence used to classify that sentence!
+2. **Authentication:** You will be greeted with a landing page where you can register a new account or login with existing credentials. User credentials are securely stored in an SQLite3 database with hashed passwords.
+3. **Dashboard Access:** Upon successful login, you will be redirected to the main dashboard. The dashboard UI dynamically updates to hide the login button and show a logout button.
+4. **Logout:** Click the logout button to securely terminate your session and return to the landing page.
+5. **Manual Mode:** Type a medical query and paste an AI response, then click **Verify Response**.
+6. **Auto Mode:** Type a keyword (like `"aspirin"`, `"vaccine"`, or `"cancer"`) in the query box and click **Auto-Generate & Verify**. The backend will mock a generated LLM response and instantly verify it.
+7. **Explanation:** The text will be highlighted in Green, Amber, or Red. Click on any highlighted sentence to open the **Explanation Drawer** at the bottom, which reveals the exact medical evidence used to classify that sentence!
 
 *(Note: The very first time you verify a response, the system will pause to download the `DeBERTa` cross-encoder model (~700MB). All subsequent verifications will be lightning-fast due to caching).*
